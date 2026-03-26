@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maestro — Arreglista & Productor IA</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--blue:#0057B8;--red:#E8000D;--green:#009A44;--orange:#FF6900;--purple:#7B2FBE;--yellow:#FFD000;--text:#1f1f1f;--sub:#444;--muted:#888;--border:#e3e3e3;--light:#f8f9fa}
+  body{font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);min-height:100vh}
+  nav{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border);max-width:760px;margin:0 auto}
+  .logo{display:flex;align-items:center;gap:8px}
+  .dots{display:flex;gap:4px}
+  .dot{width:9px;height:9px;border-radius:50%}
+  .logo-name{font-size:15px;font-weight:700}
+  .wrap{max-width:760px;margin:0 auto;padding:24px 24px 80px}
+  .hero{padding:40px 0 28px}
+  .hero h1{font-size:clamp(32px,6vw,52px);font-weight:300;line-height:1.1;letter-spacing:-1.5px;margin-bottom:12px}
+  .hero h1 strong{font-weight:700}
+  .hero p{font-size:14px;color:var(--sub);line-height:1.6;max-width:480px}
+  .hr{height:1px;background:var(--border);margin:24px 0}
+  .slabel{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+  .slabel-dot{width:6px;height:6px;border-radius:50%}
+  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+  .field label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+  textarea,input,select{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;width:100%;outline:none;transition:border-color .12s}
+  textarea:focus,input:focus,select:focus{border-color:var(--blue)}
+  textarea{resize:vertical;min-height:80px;line-height:1.6}
+  select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:520px){.row2{grid-template-columns:1fr}}
+  .btn{height:48px;border-radius:24px;border:none;font-size:15px;font-weight:600;cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+  .btn-blue{background:var(--blue);color:#fff}
+  .btn-blue:hover{background:#0046a0;box-shadow:0 2px 12px rgba(0,87,184,.25)}
+  .btn-green{background:var(--green);color:#fff}
+  .btn-green:hover{background:#007a35}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .err{background:#fff8f8;border:1.5px solid var(--red);border-radius:10px;padding:11px 14px;color:var(--red);font-size:13px;margin-bottom:14px}
+  .result-card{border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-top:24px;animation:fadeUp .3s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .res-header{padding:20px;background:var(--light);border-bottom:1px solid var(--border)}
+  .res-title{font-size:22px;font-weight:700;letter-spacing:-.5px;margin-bottom:8px}
+  .pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+  .pill{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;color:#fff}
+  .res-mood{font-size:13px;color:var(--sub);font-style:italic}
+  .tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;background:#fff}
+  .tab{padding:11px 14px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase;background:none;border-top:none;border-left:none;border-right:none;transition:all .1s}
+  .tab:hover{color:var(--text)}
+  .tab.on{color:var(--text);border-bottom-color:var(--red)}
+  .tab-body{padding:18px 20px}
+  .struct-row{display:flex;padding:8px 10px;border-radius:7px;transition:background .1s}
+  .struct-row:hover{background:var(--light)}
+  .struct-name{width:84px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;flex-shrink:0;padding-top:2px}
+  .struct-desc{flex:1;font-size:13px;color:var(--sub);line-height:1.6}
+  .struct-bars{font-size:10px;color:var(--muted);width:24px;text-align:right;flex-shrink:0}
+  .arr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+  .arr-card{background:var(--light);border:1px solid var(--border);border-radius:10px;padding:12px}
+  .arr-icon{font-size:20px;margin-bottom:5px}
+  .arr-name{font-size:12px;font-weight:700;margin-bottom:3px}
+  .arr-role{font-size:11px;color:var(--muted);line-height:1.5}
+  .lyrics-block{background:var(--light);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;padding:16px;font-size:14px;line-height:2.1;white-space:pre-wrap}
+  .prod-notes{background:var(--light);border-left:3px solid var(--orange);border-radius:0 8px 8px 0;padding:16px;font-size:13px;line-height:1.8;color:var(--sub)}
+  /* Audio section */
+  .audio-section{border-top:1px solid var(--border);padding:16px 20px;background:var(--light)}
+  .audio-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+  .audio-prompt{background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--sub);margin-bottom:12px;line-height:1.5}
+  .audio-prompt-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+  .audio-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .dur-select{height:36px;padding:0 10px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;background:#fff;cursor:pointer;outline:none;width:auto}
+  .btn-audio{height:38px;padding:0 18px;border-radius:20px;border:none;background:var(--green);color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:all .12s;white-space:nowrap}
+  .btn-audio:hover{background:#007a35}
+  .btn-audio:disabled{opacity:.5;cursor:not-allowed}
+  .btn-audio.loading{background:var(--orange)}
+  .audio-result{margin-top:12px}
+  audio{width:100%;border-radius:8px;margin-bottom:6px}
+  .download-link{font-size:12px;font-weight:600;color:var(--blue);text-decoration:none}
+  .audio-err{font-size:12px;color:var(--red);margin-top:8px;background:#fff8f8;padding:8px 12px;border-radius:8px}
+  .loading-card{border:1.5px solid var(--border);border-radius:14px;padding:20px;margin-top:16px}
+  .loading-lbl{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+  .step{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);padding:7px 10px;border-radius:8px}
+  .step.done{color:var(--green)}
+  .step.active{color:var(--text);background:var(--light);font-weight:600}
+  .step-n{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:#fff;flex-shrink:0}
+  .step.done .step-n{background:var(--green);border-color:var(--green);color:#fff}
+  .step.active .step-n{background:var(--blue);border-color:var(--blue);color:#fff;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .hidden{display:none}
+  .status-bar{font-size:12px;color:var(--muted);padding:8px 0;text-align:center}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="dots">
+      <div class="dot" style="background:#E8000D"></div>
+      <div class="dot" style="background:#FFD000"></div>
+      <div class="dot" style="background:#009A44"></div>
+      <div class="dot" style="background:#0057B8"></div>
+    </div>
+    <span class="logo-name">Maestro</span>
+  </div>
+  <span style="font-size:12px;color:var(--muted)">Arreglista & Productor IA</span>
+</nav>
+
+<div class="wrap">
+  <div class="hero">
+    <h1><strong>Crea tu</strong> canción<br><span style="color:#E8000D">completa</span> con <span style="color:#0057B8">IA</span></h1>
+    <p>Describe tu idea, pega un link o sube tu audio — la IA compondrá el arreglo y generará el audio.</p>
+  </div>
+
+  <div class="hr"></div>
+
+  <!-- VISIÓN -->
+  <div class="slabel"><div class="slabel-dot" style="background:#E8000D"></div>Tu idea musical</div>
+  <div class="field">
+    <label>Descripción</label>
+    <textarea id="vision" placeholder="Ej: cumbia con acordeón y bajo, 120 bpm, alegre y tropical, para bailar en familia..."></textarea>
+  </div>
+  <div class="row2">
+    <div class="field">
+      <label>Género</label>
+      <select id="genre">
+        <option value="auto">Detectar automáticamente</option>
+        <option>Jazz</option><option>Pop</option><option>Rock</option>
+        <option>Cumbia</option><option>Reggaeton</option><option>Salsa</option>
+        <option>Vallenato</option><option>Bossa Nova</option><option>R&B</option>
+        <option>Hip-Hop</option><option>Funk</option><option>Blues</option>
+        <option>Electrónica</option><option>Ambient</option><option>Clásica</option>
+        <option>Flamenco</option><option>Reggae</option><option>Tango</option>
+        <option>Champeta</option><option>Porro</option><option>Bambuco</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Tipo de voz</label>
+      <select id="voice">
+        <option value="auto">Recomendar automáticamente</option>
+        <option>Soprano</option><option>Mezzo-soprano</option><option>Contralto</option>
+        <option>Tenor</option><option>Barítono</option><option>Bajo</option>
+        <option>Sin voz (instrumental)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="hr"></div>
+
+  <!-- LETRA -->
+  <div class="slabel"><div class="slabel-dot" style="background:#7B2FBE"></div>Letra</div>
+  <div style="display:flex;gap:6px;margin-bottom:10px">
+    <button onclick="setLyricsMode('ai')" id="btn-ai" style="padding:5px 14px;border-radius:6px;border:1px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:var(--text)">✨ Crear con IA</button>
+    <button onclick="setLyricsMode('custom')" id="btn-custom" style="padding:5px 14px;border-radius:6px;border:1px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted)">📝 Pegar mi letra</button>
+  </div>
+  <div id="custom-lyrics-wrap" class="hidden">
+    <textarea id="custom-lyrics" rows="5" placeholder="[Verso 1]&#10;Escribe tu letra...&#10;&#10;[Coro]&#10;Escribe el coro..."></textarea>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">La IA creará el arreglo alrededor de tu letra.</div>
+  </div>
+  <div id="ai-lyrics-note" style="font-size:13px;color:var(--muted)">La IA creará una letra original completa.</div>
+
+  <div class="hr"></div>
+
+  <div id="error-box" class="err hidden"></div>
+
+  <button class="btn btn-blue" onclick="createArrangement()" id="btn-create">
+    Crear arreglo completo →
+  </button>
+
+  <!-- LOADING -->
+  <div id="loading-card" class="loading-card hidden">
+    <div class="loading-lbl">Componiendo...</div>
+    <div id="steps"></div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div id="result-card" class="result-card hidden">
+    <div class="res-header">
+      <div class="res-title" id="res-title"></div>
+      <div class="pills" id="res-pills"></div>
+      <div class="res-mood" id="res-mood"></div>
+    </div>
+
+    <!-- AUDIO -->
+    <div class="audio-section">
+      <div class="audio-label">Generar audio</div>
+      <div class="audio-prompt" id="audio-prompt-box">
+        <div class="audio-prompt-lbl">Prompt para MusicGen</div>
+        <span id="audio-prompt-text"></span>
+      </div>
+      <div class="audio-controls">
+        <span style="font-size:13px;color:var(--sub)">Duración:</span>
+        <select class="dur-select" id="audio-duration">
+          <option value="8">8s (rápido ~25s)</option>
+          <option value="15" selected>15s (~45s)</option>
+          <option value="30">30s (~90s)</option>
+        </select>
+        <button class="btn-audio" id="btn-audio" onclick="generateAudio()">Generar audio ▶</button>
+      </div>
+      <div id="audio-result" class="hidden audio-result">
+        <audio id="audio-player" controls></audio>
+        <a id="audio-download" class="download-link" download="maestro.wav">↓ Descargar WAV</a>
+      </div>
+      <div id="audio-err" class="audio-err hidden"></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab on" onclick="showTab('estructura',this)">🏗 Estructura</button>
+      <button class="tab" onclick="showTab('arreglo',this)">🎸 Arreglo</button>
+      <button class="tab" onclick="showTab('letra',this)">📝 Letra</button>
+      <button class="tab" onclick="showTab('produccion',this)">🎚 Producción</button>
+    </div>
+    <div class="tab-body">
+      <div id="tab-estructura"></div>
+      <div id="tab-arreglo" class="hidden"></div>
+      <div id="tab-letra" class="hidden"></div>
+      <div id="tab-produccion" class="hidden"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const BACKEND = window.location.origin; // mismo servidor
+const CLAUDE_API = "https://api.anthropic.com/v1/messages";
+const FP = ["#E8000D","#FF6900","#0057B8","#009A44","#7B2FBE","#E91E8C","#00A99D"];
+const fp = i => FP[i % FP.length];
+const SC = ["#E8000D","#FF6900","#7B2FBE","#0057B8","#009A44","#E91E8C","#00A99D","#FF6900","#E8000D"];
+
+let currentResult = null;
+let lyricsMode = "ai";
+
+function setLyricsMode(mode) {
+  lyricsMode = mode;
+  document.getElementById("custom-lyrics-wrap").classList.toggle("hidden", mode !== "custom");
+  document.getElementById("ai-lyrics-note").classList.toggle("hidden", mode === "custom");
+  document.getElementById("btn-ai").style.color = mode === "ai" ? "var(--text)" : "var(--muted)";
+  document.getElementById("btn-ai").style.fontWeight = mode === "ai" ? "700" : "600";
+  document.getElementById("btn-custom").style.color = mode === "custom" ? "var(--text)" : "var(--muted)";
+  document.getElementById("btn-custom").style.fontWeight = mode === "custom" ? "700" : "600";
+}
+
+function showTab(name, btn) {
+  ["estructura","arreglo","letra","produccion"].forEach(t => {
+    document.getElementById("tab-"+t).classList.add("hidden");
+  });
+  document.querySelectorAll(".tab").forEach(b => b.classList.remove("on"));
+  document.getElementById("tab-"+name).classList.remove("hidden");
+  btn.classList.add("on");
+}
+
+function setSteps(steps, activeIdx) {
+  const icons = ["🎼","🎹","✍️","🎵","🎶"];
+  document.getElementById("steps").innerHTML = steps.map((s,i) => `
+    <div class="step ${i < activeIdx ? 'done' : i === activeIdx ? 'active' : ''}">
+      <div class="step-n">${i < activeIdx ? '✓' : i === activeIdx ? '·' : i+1}</div>
+      <span>${icons[i]||'♪'} ${s}</span>
+    </div>
+  `).join("");
+}
+
+function extractJSON(raw) {
+  if (!raw) return null;
+  const s = raw.replace(/^```(?:json)?\s*/m,"").replace(/```\s*$/m,"").trim();
+  try { return JSON.parse(s); } catch {}
+  const a = raw.indexOf("{"), b = raw.lastIndexOf("}");
+  if (a !== -1 && b > a) { try { return JSON.parse(raw.slice(a, b+1)); } catch {} }
+  return null;
+}
+
+function buildAudioPrompt(r) {
+  const p = [];
+  if (r.genero) p.push(r.genero);
+  if (r.subgenero) p.push(r.subgenero);
+  if (r.instrumento_principal) p.push("featuring " + r.instrumento_principal);
+  if (r.tempo_bpm) p.push(r.tempo_bpm + " bpm");
+  if (r.mood) p.push(r.mood);
+  return p.join(", ");
+}
+
+async function createArrangement() {
+  const vision = document.getElementById("vision").value.trim();
+  const genre = document.getElementById("genre").value;
+  const voice = document.getElementById("voice").value;
+  const customLyrics = document.getElementById("custom-lyrics").value.trim();
+
+  if (!vision) {
+    document.getElementById("error-box").textContent = "Describe tu idea musical primero.";
+    document.getElementById("error-box").classList.remove("hidden");
+    return;
+  }
+  document.getElementById("error-box").classList.add("hidden");
+  document.getElementById("result-card").classList.add("hidden");
+  document.getElementById("loading-card").classList.remove("hidden");
+  document.getElementById("btn-create").disabled = true;
+
+  const stepLabels = ["Analizando tu idea","Componiendo estructura","Creando arreglos","Escribiendo letra","Finalizando producción"];
+  setSteps(stepLabels, 0);
+  let stepIdx = 0;
+  const stepTimer = setInterval(() => {
+    stepIdx = Math.min(stepIdx + 1, stepLabels.length - 1);
+    setSteps(stepLabels, stepIdx);
+  }, 2000);
+
+  const sys = `Eres un arreglista y productor musical de nivel mundial. Responde SOLO JSON puro sin bloques de código:
+{"titulo":"","fuente_detectada":{"tipo":"descripción","titulo_original":"","artista_original":"","url":""},"instrumento_principal":"","genero":"","subgenero":"","tonalidad":"","tempo_bpm":120,"compas":"4/4","tipo_voz":"","mood":"","influencias_detectadas":[],"estructura":[{"nombre":"Intro","compases":8,"descripcion":""},{"nombre":"Verso 1","compases":16,"descripcion":""},{"nombre":"Pre-coro","compases":8,"descripcion":""},{"nombre":"Coro","compases":16,"descripcion":""},{"nombre":"Verso 2","compases":16,"descripcion":""},{"nombre":"Coro","compases":16,"descripcion":""},{"nombre":"Bridge","compases":8,"descripcion":""},{"nombre":"Coro final","compases":16,"descripcion":""},{"nombre":"Outro","compases":8,"descripcion":""}],"arreglo":[{"instrumento":"","icono":"","rol":""}],"letra":"","notas_produccion":"","referencias_similares":[]}`;
+
+  const parts = [];
+  if (vision) parts.push(`Visión: ${vision}`);
+  if (genre !== "auto") parts.push(`Género: ${genre}`);
+  if (voice !== "auto") parts.push(`Tipo de voz: ${voice}`);
+  if (lyricsMode === "custom" && customLyrics) parts.push(`Usa esta letra exactamente:\n${customLyrics}`);
+  else parts.push("Crea letra original con [Intro][Verso 1][Pre-coro][Coro][Bridge][Outro].");
+
+  try {
+    const res = await fetch(CLAUDE_API, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 4000,
+        system: sys,
+        messages: [{ role: "user", content: parts.join("\n") }]
+      })
+    });
+    clearInterval(stepTimer);
+    const data = await res.json();
+    const text = (data.content||[]).map(b => b.type==="text"?b.text:"").join("");
+    const parsed = extractJSON(text);
+    if (!parsed) throw new Error("No se pudo leer la respuesta. Intenta de nuevo.");
+    currentResult = parsed;
+    renderResult(parsed);
+  } catch(e) {
+    clearInterval(stepTimer);
+    document.getElementById("error-box").textContent = "⚠ " + e.message;
+    document.getElementById("error-box").classList.remove("hidden");
+  } finally {
+    document.getElementById("loading-card").classList.add("hidden");
+    document.getElementById("btn-create").disabled = false;
+  }
+}
+
+function renderResult(r) {
+  document.getElementById("res-title").textContent = r.titulo || "Tu canción";
+
+  const pills = [];
+  if (r.genero) pills.push({c:"#7B2FBE",t:"🎭 "+r.genero+(r.subgenero?" · "+r.subgenero:"")});
+  if (r.tipo_voz) pills.push({c:"#0057B8",t:"🎤 "+r.tipo_voz});
+  if (r.instrumento_principal) pills.push({c:"#009A44",t:"🎵 "+r.instrumento_principal});
+  if (r.tempo_bpm) pills.push({c:"#FF6900",t:"⚡ "+r.tempo_bpm+" BPM"});
+  if (r.tonalidad) pills.push({c:"#E91E8C",t:"♩ "+r.tonalidad});
+  document.getElementById("res-pills").innerHTML = pills.map(p=>`<span class="pill" style="background:${p.c}">${p.t}</span>`).join("");
+
+  if (r.mood) document.getElementById("res-mood").textContent = `"${r.mood}"`;
+
+  const audioPrompt = buildAudioPrompt(r);
+  document.getElementById("audio-prompt-text").textContent = audioPrompt || "—";
+
+  // Estructura
+  document.getElementById("tab-estructura").innerHTML = (r.estructura||[]).map((s,i)=>`
+    <div class="struct-row">
+      <div class="struct-name" style="color:${SC[i%SC.length]}">${s.nombre}</div>
+      <div class="struct-desc">${s.descripcion}</div>
+      ${s.compases?`<div class="struct-bars">${s.compases}c</div>`:""}
+    </div>`).join("");
+
+  // Arreglo
+  document.getElementById("tab-arreglo").innerHTML = `<div class="arr-grid">${(r.arreglo||[]).map((a,i)=>`
+    <div class="arr-card" style="border-top:3px solid ${fp(i)}">
+      <div class="arr-icon">${a.icono||"🎵"}</div>
+      <div class="arr-name">${a.instrumento}</div>
+      <div class="arr-role">${a.rol}</div>
+    </div>`).join("")}</div>`;
+
+  // Letra
+  document.getElementById("tab-letra").innerHTML = `<div class="lyrics-block">${r.letra||"Sin letra generada."}</div>`;
+
+  // Producción
+  document.getElementById("tab-produccion").innerHTML = `<div class="prod-notes">${r.notas_produccion||""}</div>`;
+
+  document.getElementById("result-card").classList.remove("hidden");
+  document.getElementById("result-card").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+async function generateAudio() {
+  if (!currentResult) return;
+  const prompt = buildAudioPrompt(currentResult);
+  const duration = parseInt(document.getElementById("audio-duration").value);
+  const btn = document.getElementById("btn-audio");
+  const errEl = document.getElementById("audio-err");
+  const resultEl = document.getElementById("audio-result");
+
+  btn.disabled = true;
+  btn.classList.add("loading");
+  btn.textContent = `Generando (~${duration*3}s)...`;
+  errEl.classList.add("hidden");
+  resultEl.classList.add("hidden");
+
+  try {
+    const res = await fetch(`${BACKEND}/generate`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ prompt, duration })
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(()=>({detail:"Error del servidor"}));
+      throw new Error(e.detail || `HTTP ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    document.getElementById("audio-player").src = url;
+    document.getElementById("audio-download").href = url;
+    document.getElementById("audio-download").download = (currentResult.titulo||"maestro")+".wav";
+    resultEl.classList.remove("hidden");
+  } catch(e) {
+    errEl.textContent = "⚠ " + e.message;
+    errEl.classList.remove("hidden");
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove("loading");
+    btn.textContent = "Generar audio ▶";
+  }
+}
+</script>
+</body>
+</html>
