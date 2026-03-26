@@ -11,7 +11,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -162,20 +163,19 @@ def make_response(path: Path, bg: BackgroundTasks) -> FileResponse:
     )
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def root():
-    return {
-        "service": "Maestro Audio API",
-        "version": "3.0.0",
-        "ready": state["ready"],
-        "model": MODEL_ID,
-        "endpoints": {
-            "GET  /health": "Estado del servicio",
-            "POST /generate": "Genera audio desde un prompt de texto",
-            "POST /generate/from-audio": "Analiza tu audio y genera una versión nueva",
-            "POST /generate/preview": "Preview rápido de 8 segundos",
-        },
-    }
+    html_path = Path(__file__).parent / "static_app.html"
+    if html_path.exists():
+        return HTMLResponse(content=html_path.read_text())
+    return HTMLResponse(content="""
+    <html><body style="font-family:sans-serif;padding:40px">
+    <h2>Maestro Audio API v3.0</h2>
+    <p>Ready: """ + str(state["ready"]) + """</p>
+    <p>Model: """ + MODEL_ID + """</p>
+    <p><a href="/docs">API Docs</a> · <a href="/health">Health</a></p>
+    </body></html>
+    """)
 
 @app.get("/health")
 def health():
